@@ -24,8 +24,8 @@ type Poll = {
 
 export default function PollDetailPage({ params }: { params: { id: string } }) {
   // Unwrap the params Promise using React.use()
-  const unwrappedParams = use(params);
-  const pollId = unwrappedParams.id;
+const { id } = params;
+  const pollId = id;
   
   const router = useRouter();
   const [poll, setPoll] = useState<Poll | null>(null);
