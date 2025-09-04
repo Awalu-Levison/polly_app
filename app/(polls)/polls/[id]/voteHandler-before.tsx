@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
+
+// Types can be moved to types/poll.ts for reusability
 type PollOption = {
   id: string;
   text: string;
@@ -21,6 +23,7 @@ type Poll = {
   totalVotes: number;
 };
 
+
 export default function PollDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
   const [poll, setPoll] = useState<Poll | null>(null);
@@ -28,10 +31,12 @@ export default function PollDetailPage({ params }: { params: { id: string } }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasVoted, setHasVoted] = useState(false);
+  const [error, setError] = useState<string | null>(null); // User-facing error
 
-  // Fetch poll data
+  // Fetch poll data (async/await directly in useEffect) with cleanup to avoid state update on unmounted component
   useEffect(() => {
-    const fetchPoll = async () => {
+    let isMounted = true;
+    (async () => {
       try {
         // TODO: Replace with actual API call
         const mockPoll: Poll = {
@@ -47,67 +52,70 @@ export default function PollDetailPage({ params }: { params: { id: string } }) {
           ],
           totalVotes: 42,
         };
-
         // Simulate network delay
-        setTimeout(() => {
-          setPoll(mockPoll);
-          setIsLoading(false);
-        }, 1000);
-      } catch (error) {
-        console.error('Failed to fetch poll:', error);
-        setIsLoading(false);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        if (isMounted) setPoll(mockPoll);
+      } catch (err) {
+        if (isMounted) setError('Failed to fetch poll. Please try again later.');
+      } finally {
+        if (isMounted) setIsLoading(false);
       }
-    };
-
-    fetchPoll();
+    })();
+    return () => { isMounted = false; };
   }, [params.id]);
+
+  // Memoize percentage calculation for performance
+  const calculatePercentage = useCallback((votes: number) => {
+    if (!poll || poll.totalVotes === 0) return 0;
+    return Math.round((votes / poll.totalVotes) * 100);
+  }, [poll]);
 
   // Handle vote submission
   const handleVote = useCallback(async () => {
     if (!selectedOption || !poll) return;
-    
     setIsSubmitting(true);
+    setError(null);
     try {
       // TODO: Replace with actual API call
-      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Update UI optimistically
+      // Optimistic UI update
       setPoll(prevPoll => {
         if (!prevPoll) return null;
-        
-        const updatedOptions = prevPoll.options.map(option => 
-          option.id === selectedOption 
+        const updatedOptions = prevPoll.options.map(option =>
+          option.id === selectedOption
             ? { ...option, votes: option.votes + 1 }
             : option
         );
-        
         return {
           ...prevPoll,
           options: updatedOptions,
           totalVotes: prevPoll.totalVotes + 1,
         };
       });
-      
       setHasVoted(true);
-    } catch (error) {
-      console.error('Failed to submit vote:', error);
+    } catch (err) {
+      setError('Failed to submit vote. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
   }, [selectedOption, poll]);
 
-  // Calculate percentage for a given vote count
-  const calculatePercentage = useCallback((votes: number) => {
-    if (!poll || poll.totalVotes === 0) return 0;
-    return Math.round((votes / poll.totalVotes) * 100);
-  }, [poll?.totalVotes]);
-
   // Loading state
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900" aria-label="Loading"></div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="container mx-auto py-8 px-4 text-center">
+        <h1 className="text-2xl font-bold mb-4">Error</h1>
+        <p className="mb-6 text-red-600">{error}</p>
+        <Button onClick={() => router.push('/polls')}>Back to Polls</Button>
       </div>
     );
   }
@@ -129,7 +137,6 @@ export default function PollDetailPage({ params }: { params: { id: string } }) {
       <Button variant="outline" className="mb-6" onClick={() => router.push('/polls')}>
         ← Back to Polls
       </Button>
-      
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl">{poll.title}</CardTitle>
@@ -139,15 +146,14 @@ export default function PollDetailPage({ params }: { params: { id: string } }) {
         </CardHeader>
         <CardContent>
           <p className="mb-6">{poll.description}</p>
-          
           {hasVoted ? (
-            <PollResults 
-              options={poll.options} 
-              calculatePercentage={calculatePercentage} 
-              totalVotes={poll.totalVotes} 
+            <PollResults
+              options={poll.options}
+              calculatePercentage={calculatePercentage}
+              totalVotes={poll.totalVotes}
             />
           ) : (
-            <VoteForm 
+            <VoteForm
               options={poll.options}
               selectedOption={selectedOption}
               setSelectedOption={setSelectedOption}
@@ -161,29 +167,35 @@ export default function PollDetailPage({ params }: { params: { id: string } }) {
   );
 }
 
+
 // Poll results component
-function PollResults({ 
-  options, 
-  calculatePercentage, 
-  totalVotes 
-}: { 
-  options: PollOption[], 
-  calculatePercentage: (votes: number) => number, 
-  totalVotes: number 
+function PollResults({
+  options,
+  calculatePercentage,
+  totalVotes,
+}: {
+  options: PollOption[];
+  calculatePercentage: (votes: number) => number;
+  totalVotes: number;
 }) {
+  // Memoize results for performance
+  const results = useMemo(() => options.map(option => ({
+    ...option,
+    percent: calculatePercentage(option.votes)
+  })), [options, calculatePercentage]);
   return (
     <div className="space-y-4">
       <h3 className="font-medium">Results:</h3>
-      {options.map((option) => (
+      {results.map(option => (
         <div key={option.id} className="space-y-1">
           <div className="flex justify-between">
             <span>{option.text}</span>
-            <span>{calculatePercentage(option.votes)}% ({option.votes} votes)</span>
+            <span>{option.percent}% ({option.votes} votes)</span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2.5">
-            <div 
-              className="bg-blue-600 h-2.5 rounded-full" 
-              style={{ width: `${calculatePercentage(option.votes)}%` }}
+          <div className="w-full bg-gray-200 rounded-full h-2.5" aria-label={`Votes for ${option.text}`}>
+            <div
+              className="bg-blue-600 h-2.5 rounded-full"
+              style={{ width: `${option.percent}%` }}
             ></div>
           </div>
         </div>
@@ -193,35 +205,42 @@ function PollResults({
   );
 }
 
+
 // Vote form component
-function VoteForm({ 
-  options, 
-  selectedOption, 
-  setSelectedOption, 
-  handleVote, 
-  isSubmitting 
-}: { 
-  options: PollOption[], 
-  selectedOption: string, 
-  setSelectedOption: (value: string) => void, 
-  handleVote: () => void, 
-  isSubmitting: boolean 
+function VoteForm({
+  options,
+  selectedOption,
+  setSelectedOption,
+  handleVote,
+  isSubmitting,
+}: {
+  options: PollOption[];
+  selectedOption: string;
+  setSelectedOption: (value: string) => void;
+  handleVote: () => void;
+  isSubmitting: boolean;
 }) {
+  
   return (
-    <form onSubmit={(e) => { e.preventDefault(); handleVote(); }} className="space-y-6">
-      <RadioGroup value={selectedOption} onValueChange={setSelectedOption}>
-        <div className="space-y-3">
-          {options.map((option) => (
-            <div key={option.id} className="flex items-center space-x-2">
-              <RadioGroupItem value={option.id} id={option.id} />
-              <label htmlFor={option.id} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                {option.text}
-              </label>
-            </div>
-          ))}
-        </div>
+    <form
+      onSubmit={e => {
+        e.preventDefault();
+        handleVote();
+      }}
+      className="space-y-6"
+      aria-label="Vote form"
+    >
+      <RadioGroup value={selectedOption} onValueChange={setSelectedOption} className="space-y-3">
+        {options.map(option => (
+          <div key={option.id} className="flex items-center space-x-2">
+            <RadioGroupItem value={option.id} id={option.id} aria-checked={selectedOption === option.id} />
+            <label htmlFor={option.id} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              {option.text}
+            </label>
+          </div>
+        ))}
       </RadioGroup>
-      <Button type="submit" disabled={!selectedOption || isSubmitting}>
+      <Button type="submit" disabled={!selectedOption || isSubmitting} aria-disabled={!selectedOption || isSubmitting}>
         {isSubmitting ? 'Submitting...' : 'Submit Vote'}
       </Button>
     </form>
