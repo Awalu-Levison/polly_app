@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { use } from 'react';
 
 type PollOption = {
   id: string;
@@ -22,6 +23,10 @@ type Poll = {
 };
 
 export default function PollDetailPage({ params }: { params: { id: string } }) {
+  // Unwrap the params Promise using React.use()
+  const unwrappedParams = use(params);
+  const pollId = unwrappedParams.id;
+  
   const router = useRouter();
   const [poll, setPoll] = useState<Poll | null>(null);
   const [selectedOption, setSelectedOption] = useState<string>('');
@@ -36,8 +41,8 @@ export default function PollDetailPage({ params }: { params: { id: string } }) {
         // Simulate API call
         setTimeout(() => {
           const mockPoll: Poll = {
-            id: params.id,
-            title: params.id === '1' ? 'Favorite Programming Language' : 'Sample Poll',
+            id: pollId,
+            title: pollId === '1' ? 'Favorite Programming Language' : 'Sample Poll',
             description: 'Please select your preference from the options below.',
             createdAt: new Date().toISOString(),
             options: [
@@ -58,7 +63,7 @@ export default function PollDetailPage({ params }: { params: { id: string } }) {
     };
 
     fetchPoll();
-  }, [params.id]);
+  }, [pollId]);
 
   const handleVote = async () => {
     if (!selectedOption) return;
