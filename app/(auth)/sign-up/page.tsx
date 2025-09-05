@@ -7,6 +7,29 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 
+/**
+ * SignUp React Component
+ *
+ * Renders the user registration form for the Polly App. This component is essential for onboarding new users,
+ * enabling them to create an account by providing their name, email, and password. It simulates registration and
+ * redirects to the polls page upon success.
+ *
+ * Why it's needed:
+ * - Provides a dedicated entry point for new users, supporting the app's core feature of personalized polling and voting.
+ * - Ensures only registered users can create or vote in polls, supporting authentication and user management flows.
+ *
+ * Assumptions:
+ * - The actual registration logic (API call, validation, error handling) will be implemented later; currently, it is simulated.
+ * - The app expects unique emails for each user and that passwords are confirmed before submission.
+ *
+ * Edge Cases:
+ * - Password and confirm password fields may not match (should be validated in a real implementation).
+ * - Duplicate email registration, invalid email format, or weak passwords are not currently handled but should be in production.
+ *
+ * Connections:
+ * - On successful registration, the user is redirected to the polls page, integrating with the main polling workflow.
+ * - Provides a link to the sign-in page for users who already have an account, supporting seamless navigation between auth flows.
+ */
 export default function SignUp() {
   const router = useRouter();
   const [name, setName] = useState('');

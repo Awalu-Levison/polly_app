@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Button } from '../../../../components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../../components/ui/card';
+import { RadioGroup, RadioGroupItem } from '../../../../components/ui/radio-group';
 
 
 // Types can be moved to types/poll.ts for reusability
@@ -24,6 +24,30 @@ type Poll = {
 };
 
 
+/**
+ * PollDetailPage React Component
+ *
+ * Displays the details of a single poll, allows users to vote, and shows poll results.
+ * Handles loading, error, and not-found states. Integrates with the app's navigation and voting flows.
+ *
+ * Why it's needed:
+ * - Central to the polling experience, enabling users to interact with individual polls.
+ * - Connects the voting UI with poll data and result visualization, supporting the app's core feature set.
+ *
+ * Assumptions:
+ * - The poll data is fetched from an API or mock; currently, a mock is used for demonstration.
+ * - The user is authenticated and authorized to vote (handled elsewhere in the app).
+ *
+ * Edge Cases:
+ * - Poll may not exist (e.g., deleted or invalid ID), handled by a not-found state.
+ * - Submitting a vote with no option selected is prevented by disabling the submit button.
+ * - No error feedback is shown for failed vote submissions in this placeholder version.
+ *
+ * Connections:
+ * - Uses navigation to return to the polls list and after voting.
+ * - Integrates with shared UI components (Button, Card, RadioGroup).
+ * - Relies on authentication and poll data fetching logic implemented elsewhere in the app.
+ */
 export default function PollDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
   const [poll, setPoll] = useState<Poll | null>(null);
