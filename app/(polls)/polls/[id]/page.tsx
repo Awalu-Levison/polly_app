@@ -22,9 +22,9 @@ type Poll = {
   totalVotes: number;
 };
 
-export default function PollDetailPage({ params }: { params: { id: string } }) {
+export default function PollDetailPage({ params }: { params: Promise<{ id: string }> }) {
   // Unwrap the params Promise using React.use()
-const { id } = params;
+  const { id } = use(params);
   const pollId = id;
   
   const router = useRouter();
