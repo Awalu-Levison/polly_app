@@ -24,7 +24,7 @@ Follow these steps to run Polly App locally:
 
 1. **Clone the Repository**
    ```bash
-   git clone https://github.com/your-username/polly_app.git
+   https://github.com/Awalu-Levison/polly_app.git
    cd polly_app
    ```
 
@@ -85,6 +85,8 @@ You can deploy Polly App easily on [Vercel](https://vercel.com/new?utm_medium=de
 
 See [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 
+## Team Members
+Awalu Levison: <Frontend Engineer>
 ---
 
 Feel free to contribute or open issues for improvements!
