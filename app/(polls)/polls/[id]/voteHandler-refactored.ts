@@ -1,3 +1,15 @@
+/**
+ * voteHandler-refactored.ts
+ *
+ * This component handles the display of poll details, voting functionality, and result visualization for a single poll.
+ * It manages loading, error, and not-found states, and uses optimistic UI updates for a responsive user experience.
+ *
+ * Design Intent:
+ * - Decouples poll logic from UI components for maintainability.
+ * - Uses TypeScript for type safety.
+ * - Handles async data fetching with cleanup to avoid state updates on unmounted components.
+ * - Provides accessibility via ARIA attributes and semantic HTML.
+ */
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
@@ -13,6 +25,7 @@ interface PollOption {
   votes: number;
 }
 
+// Type definition for a single poll option
 interface Poll {
   id: string;
   title: string;
@@ -22,6 +35,7 @@ interface Poll {
   totalVotes: number;
 }
 
+// Type definition for a poll
 // Props interfaces for child components
 interface PollResultsProps {
   options: PollOption[];
@@ -34,6 +48,14 @@ interface VoteFormProps {
   selectedOption: string;
   setSelectedOption: (value: string) => void;
   handleVote: () => Promise<void>;
+/**
+ * PollDetailPage
+ *
+ * Displays poll details, allows voting, and shows results. Handles loading, error, and not-found states.
+ *
+ * Props:
+ *   - params: { id: string } - The poll ID from the route.
+ */
   isSubmitting: boolean;
 }
 
@@ -134,7 +156,7 @@ export default function PollDetailPage({ params }: { params: { id: string } }) {
 
   // Render loading state
   if (isLoading) {
-    return <LoadingSpinner /> as React.ReactElement;
+    return <LoadingSpinner />;
   }
 
   // Render error state
