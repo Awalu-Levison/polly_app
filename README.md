@@ -86,7 +86,7 @@ You can deploy Polly App easily on [Vercel](https://vercel.com/new?utm_medium=de
 See [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 
 ## Team Members
-- Awalu Levison: <Frontend Engineer>
+- Awalu Levison: (Frontend Engineer)
 ---
 
 Feel free to contribute or open issues for improvements!
