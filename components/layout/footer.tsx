@@ -6,7 +6,7 @@ export function Footer() {
       <div className="container flex flex-col md:flex-row items-center justify-between py-6 gap-4">
         <div className="flex flex-col md:flex-row gap-4 md:gap-6 items-center">
           <Link href="/" className="font-medium">
-            Polly
+            Polly Web App
           </Link>
           <p className="text-sm text-muted-foreground">
             © {new Date().getFullYear()} Polly. All rights reserved.
