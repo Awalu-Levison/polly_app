@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { use, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 type PollOption = {
@@ -21,13 +21,15 @@ type Poll = {
   totalVotes: number;
 };
 
-export default function PollDetailPage({ params }: { params: { id: string } }) {
+export default function PollDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const [poll, setPoll] = useState<Poll | null>(null);
   const [selectedOption, setSelectedOption] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasVoted, setHasVoted] = useState(false);
+
+  const { id } = use(params);
 
   useEffect(() => {
     const fetchPoll = async () => {
@@ -36,8 +38,8 @@ export default function PollDetailPage({ params }: { params: { id: string } }) {
         // Simulate API call
         setTimeout(() => {
           const mockPoll: Poll = {
-            id: params.id,
-            title: params.id === '1' ? 'Favorite Programming Language' : 'Sample Poll',
+            id: id,
+            title: id === '1' ? 'Favorite Programming Language' : 'Sample Poll',
             description: 'Please select your preference from the options below.',
             createdAt: new Date().toISOString(),
             options: [
@@ -58,7 +60,7 @@ export default function PollDetailPage({ params }: { params: { id: string } }) {
     };
 
     fetchPoll();
-  }, [params.id]);
+  }, [id]);
 
   const handleVote = async () => {
     if (!selectedOption) return;
