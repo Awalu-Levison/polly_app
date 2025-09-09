@@ -40,6 +40,5 @@ create unique index if not exists unique_vote_token on votes(poll_id, vote_token
 -- Row level security
 -- Enable RLS
 alter table polls enable row level security;
-alter table poll_options enable row level security;
 alter table votes enable row level security;
 
