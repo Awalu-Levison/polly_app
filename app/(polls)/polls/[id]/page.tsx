@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import QRCode from 'react-qr-code';
 
 type PollOption = {
   id: string;
@@ -28,6 +29,8 @@ export default function PollDetailPage({ params }: { params: Promise<{ id: strin
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasVoted, setHasVoted] = useState(false);
+  const [showQRCode, setShowQRCode] = useState(false);
+  const [pollUrl, setPollUrl] = useState('');
 
   const { id } = use(params);
 
@@ -60,6 +63,7 @@ export default function PollDetailPage({ params }: { params: Promise<{ id: strin
     };
 
     fetchPoll();
+    setPollUrl(window.location.href);
   }, [id]);
 
   const handleVote = async () => {
@@ -126,51 +130,67 @@ export default function PollDetailPage({ params }: { params: Promise<{ id: strin
       
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">{poll.title}</CardTitle>
-          <CardDescription>
-            Created on {new Date(poll.createdAt).toLocaleDateString()}
-          </CardDescription>
+          <div className="flex justify-between items-start">
+            <div>
+              <CardTitle className="text-2xl">{poll.title}</CardTitle>
+              <CardDescription>
+                Created on {new Date(poll.createdAt).toLocaleDateString()}
+              </CardDescription>
+            </div>
+            <Button variant="outline" onClick={() => setShowQRCode(!showQRCode)}>
+              {showQRCode ? 'Hide QR Code' : 'Share'}
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
-          <p className="mb-6">{poll.description}</p>
-          
-          {hasVoted ? (
-            <div className="space-y-4">
-              <h3 className="font-medium">Results:</h3>
-              {poll.options.map((option) => (
-                <div key={option.id} className="space-y-1">
-                  <div className="flex justify-between">
-                    <span>{option.text}</span>
-                    <span>{calculatePercentage(option.votes)}% ({option.votes} votes)</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2.5">
-                    <div 
-                      className="bg-blue-600 h-2.5 rounded-full" 
-                      style={{ width: `${calculatePercentage(option.votes)}%` }}
-                    ></div>
-                  </div>
-                </div>
-              ))}
-              <p className="text-sm text-gray-500 mt-4">Total votes: {poll.totalVotes}</p>
+          {showQRCode ? (
+            <div className="flex flex-col items-center">
+              <QRCode value={pollUrl} />
+              <p className="mt-4 text-sm text-gray-500">Scan to share this poll</p>
             </div>
           ) : (
-            <form onSubmit={(e) => { e.preventDefault(); handleVote(); }} className="space-y-6">
-              <RadioGroup value={selectedOption} onValueChange={setSelectedOption}>
-                <div className="space-y-3">
+            <>
+              <p className="mb-6">{poll.description}</p>
+              
+              {hasVoted ? (
+                <div className="space-y-4">
+                  <h3 className="font-medium">Results:</h3>
                   {poll.options.map((option) => (
-                    <div key={option.id} className="flex items-center space-x-2">
-                      <RadioGroupItem value={option.id} id={option.id} />
-                      <label htmlFor={option.id} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                        {option.text}
-                      </label>
+                    <div key={option.id} className="space-y-1">
+                      <div className="flex justify-between">
+                        <span>{option.text}</span>
+                        <span>{calculatePercentage(option.votes)}% ({option.votes} votes)</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2.5">
+                        <div 
+                          className="bg-blue-600 h-2.5 rounded-full" 
+                          style={{ width: `${calculatePercentage(option.votes)}%` }}
+                        ></div>
+                      </div>
                     </div>
                   ))}
+                  <p className="text-sm text-gray-500 mt-4">Total votes: {poll.totalVotes}</p>
                 </div>
-              </RadioGroup>
-              <Button type="submit" disabled={!selectedOption || isSubmitting}>
-                {isSubmitting ? 'Submitting...' : 'Submit Vote'}
-              </Button>
-            </form>
+              ) : (
+                <form onSubmit={(e) => { e.preventDefault(); handleVote(); }} className="space-y-6">
+                  <RadioGroup value={selectedOption} onValueChange={setSelectedOption}>
+                    <div className="space-y-3">
+                      {poll.options.map((option) => (
+                        <div key={option.id} className="flex items-center space-x-2">
+                          <RadioGroupItem value={option.id} id={option.id} />
+                          <label htmlFor={option.id} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                            {option.text}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </RadioGroup>
+                  <Button type="submit" disabled={!selectedOption || isSubmitting}>
+                    {isSubmitting ? 'Submitting...' : 'Submit Vote'}
+                  </Button>
+                </form>
+              )}
+            </>
           )}
         </CardContent>
       </Card>

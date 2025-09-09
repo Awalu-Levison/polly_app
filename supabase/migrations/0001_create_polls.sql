@@ -16,17 +16,6 @@ create table if not exists polls (
 create index if not exists idx_polls_user_id on polls(user_id);
 
 
-create table if not exists poll_options (
-    id uuid primary key default uuid_generate_v4(),
-    poll_id uuid not null references polls(id) on delete cascade,
-    option_text text not null,
-    created_at timestamp with time zone default now()
-);
-
--- Index for fast poll option lookups
-create index if not exists idx_poll_options_poll_id on poll_options(poll_id);
-
-
 -- Votes table
 create table if not exists votes (
     id uuid primary key default uuid_generate_v4(),
@@ -53,33 +42,4 @@ create unique index if not exists unique_vote_token on votes(poll_id, vote_token
 alter table polls enable row level security;
 alter table poll_options enable row level security;
 alter table votes enable row level security;
-
--- Policies for polls
-create policy "Allow user to view polls" on polls
-for select using (true);
-
-create policy "Allow user to insert own polls" on polls
-for insert with check (auth.uid() = user_id);
-
-create policy "Allow user to update own polls" on polls
-for update using (auth.uid() = user_id);
-
-create policy "Allow user to delete own polls" on polls
-for delete using (auth.uid() = user_id);
-
--- Policies for poll_options
-create policy "Allow everyone to view options" on poll_options
-for select using (true);
-
-create policy "Allow poll owner to insert options" on poll_options
-for insert with check (
-    exists(select 1 from polls where polls.id = poll_options.poll_id and polls.user_id = auth.uid())
-);
-
--- Policies for votes
-create policy "Allow everyone to view votes" on votes
-for select using (true);
-
-create policy "Allow authenticated users to insert votes" on votes
-for insert with check (auth.uid() = user_id);
 

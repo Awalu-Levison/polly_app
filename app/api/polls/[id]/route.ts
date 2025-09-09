@@ -50,10 +50,16 @@ function findPollById(id: string) {
   return mockPolls.find(poll => poll.id === id);
 }
 
+type RouteContext = {
+  params: {
+    id: string;
+  };
+};
+
 // GET handler for fetching a specific poll by ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: RouteContext
 ) {
   const { id } = params;
   
@@ -75,7 +81,7 @@ export async function GET(
 // PATCH handler for updating a poll (e.g., voting)
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: RouteContext
 ) {
   try {
     const { id } = params;
@@ -133,7 +139,7 @@ export async function PATCH(
 // DELETE handler for deleting a poll
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: RouteContext
 ) {
   const { id } = params;
   
