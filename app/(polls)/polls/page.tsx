@@ -1,70 +1,41 @@
-'use client';
-
-import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { getSupabaseAdmin } from '@/lib/supabase/server';
+
+// Re-validate the page every 60 seconds
+export const revalidate = 60;
 
 type Poll = {
   id: string;
   title: string;
-  description: string;
+  description: string | null;
   createdAt: string;
-  votesCount: number;
+  total_votes: number;
 };
 
-export default function PollsPage() {
-  const [polls, setPolls] = useState<Poll[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+async function getPolls() {
+  const supabase = getSupabaseAdmin();
+  const { data: polls, error } = await supabase
+    .from('polls')
+    .select('id, question, description, created_at, votes(count)');
 
-  useEffect(() => {
-    const fetchPolls = async () => {
-      try {
-        // TODO: Replace with actual API call
-        // Simulate API call
-        setTimeout(() => {
-          const mockPolls: Poll[] = [
-            {
-              id: '1',
-              title: 'Favorite Programming Language',
-              description: 'What is your favorite programming language?',
-              createdAt: new Date().toISOString(),
-              votesCount: 42,
-            },
-            {
-              id: '2',
-              title: 'Best Frontend Framework',
-              description: 'Which frontend framework do you prefer?',
-              createdAt: new Date().toISOString(),
-              votesCount: 36,
-            },
-            {
-              id: '3',
-              title: 'Remote Work Preference',
-              description: 'Do you prefer working remotely or in an office?',
-              createdAt: new Date().toISOString(),
-              votesCount: 28,
-            },
-          ];
-          setPolls(mockPolls);
-          setIsLoading(false);
-        }, 1000);
-      } catch (error) {
-        console.error('Failed to fetch polls:', error);
-        setIsLoading(false);
-      }
-    };
-
-    fetchPolls();
-  }, []);
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900"></div>
-      </div>
-    );
+  if (error) {
+    console.error('Failed to fetch polls:', error.message || error);
+    return [];
   }
+
+  return polls.map(p => ({
+    id: p.id,
+    title: p.question,
+    description: p.description,
+    createdAt: p.created_at,
+    total_votes: p.votes[0]?.count || 0,
+  }));
+}
+
+export default async function PollsPage() {
+  const polls: Poll[] = await getPolls();
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -95,10 +66,10 @@ export default function PollsPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-600">{poll.description}</p>
+                  <p className="text-gray-600 line-clamp-2">{poll.description || 'No description provided.'}</p>
                 </CardContent>
                 <CardFooter>
-                  <p className="text-sm text-gray-500">{poll.votesCount} votes</p>
+                  <p className="text-sm text-gray-500">{poll.total_votes} votes</p>
                 </CardFooter>
               </Card>
             </Link>

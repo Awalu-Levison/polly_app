@@ -1,6 +1,9 @@
 // Learn more: https://github.com/testing-library/jest-dom
 require('@testing-library/jest-dom');
 
+// Import mock environment variables
+require('./__tests__/setup/mockEnv');
+
 // Mock the console.error in tests to avoid noisy logs
 global.console.error = jest.fn();
 

@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -12,12 +11,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useAuth } from '@/components/auth/auth-provider';
+import { useSupabase } from '@/lib/supabase/supabase-provider';
+import { signOut } from '@/lib/actions/auth';
 
 export function Navbar() {
   const pathname = usePathname();
-  const { user, signOut } = useAuth();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { session } = useSupabase();
 
   const isActive = (path: string) => {
     return pathname === path;
@@ -37,7 +36,7 @@ export function Navbar() {
             >
               Polls
             </Link>
-            {user && (
+            {session && (
               <Link
                 href="/polls/create"
                 className={`text-sm font-medium transition-colors hover:text-primary ${isActive('/polls/create') ? 'text-foreground' : 'text-muted-foreground'}`}
@@ -49,21 +48,20 @@ export function Navbar() {
         </div>
 
         <div className="flex items-center gap-4">
-          {user ? (
+          {session ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src="/avatar.png" alt={user.name} />
-                    <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                    <AvatarImage src="/avatar.png" alt={session.user.email} />
+                    <AvatarFallback>{session.user.email?.charAt(0).toUpperCase()}</AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end" forceMount>
                 <div className="flex items-center justify-start gap-2 p-2">
                   <div className="flex flex-col space-y-1 leading-none">
-                    <p className="font-medium">{user.name}</p>
-                    <p className="text-xs text-muted-foreground">{user.email}</p>
+                    <p className="font-medium">{session.user.email}</p>
                   </div>
                 </div>
                 <DropdownMenuSeparator />
@@ -74,12 +72,15 @@ export function Navbar() {
                   <Link href="/polls">My Polls</Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  className="cursor-pointer"
-                  onSelect={() => signOut()}
-                >
-                  Log out
-                </DropdownMenuItem>
+                <form action={signOut}>
+                  <button type="submit" className="w-full text-left">
+                    <DropdownMenuItem
+                      className="cursor-pointer"
+                    >
+                      Log out
+                    </DropdownMenuItem>
+                  </button>
+                </form>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
