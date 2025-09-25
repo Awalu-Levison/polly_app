@@ -5,9 +5,12 @@ import { getSupabaseAdmin } from '@/lib/supabase/server';
 export default async function CreatePollPage() {
   const supabase = getSupabaseAdmin();
 
+  // Get the current session and user
+  const { data } = await supabase.auth.getSession();
   const { data: { user } } = await supabase.auth.getUser();
 
-  if (!user) {
+  // Check if user is authenticated
+  if (!user || !data.session) {
     redirect('/sign-in');
   }
 

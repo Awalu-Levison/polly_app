@@ -82,13 +82,23 @@ export async function getPoll(id: string): Promise<Poll | null> {
 export async function submitVote(formData: FormData) {
     const pollId = formData.get('pollId') as string;
     const optionId = formData.get('optionId') as string;
-    const userId = formData.get('userId') as string;
+    const userId = formData.get('userId') as string || null;
 
     try {
         const supabase = getSupabaseAdmin();
+        const voteData = { 
+            poll_id: pollId, 
+            option_id: optionId
+        };
+        
+        // Only include user_id if it exists
+        if (userId) {
+            Object.assign(voteData, { user_id: userId });
+        }
+        
         const { error } = await supabase
             .from('votes')
-            .insert([{ poll_id: pollId, option_id: optionId, user_id: userId }]);
+            .insert([voteData]);
 
         if (error) {
             throw new Error(error.message);

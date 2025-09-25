@@ -55,7 +55,7 @@ export async function signUp(prevState: unknown, formData: FormData) {
       // Insert new profile
       const { error } = await supabase
         .from("profiles")
-        .insert([{ id: authData.user.id, name: fullName }]);
+        .insert([{ id: authData.user.id, name: fullName, email: email }]);
       profileError = error;
     }
 
@@ -64,6 +64,14 @@ export async function signUp(prevState: unknown, formData: FormData) {
         error: profileError.message,
       };
     }
+    
+    // Sign in the user immediately after successful sign-up
+    await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    
+    redirect('/polls');
   }
 
   return {
@@ -88,7 +96,7 @@ export async function signIn(prevState: unknown, formData: FormData) {
     const { email, password } = result.data;
     const supabase = getSupabaseAdmin();
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
     });
@@ -97,6 +105,12 @@ export async function signIn(prevState: unknown, formData: FormData) {
         return {
             error: error.message,
         };
+    }
+
+    // Ensure the session is set in cookies
+    if (data && data.session) {
+        // Set cookies explicitly if needed
+        // This is handled by Supabase's cookie management
     }
 
     redirect('/polls');

@@ -17,14 +17,14 @@ function SubmitButton() {
   );
 }
 
-export default function PollVotingForm({ poll, userId }: { poll: Poll, userId: string }) {
+export default function PollVotingForm({ poll, userId }: { poll: Poll, userId?: string }) {
   const [state, formAction] = useFormState(submitVote, null);
   const [selectedOption, setSelectedOption] = useState('');
 
   return (
     <form action={formAction}>
       <input type="hidden" name="pollId" value={poll.id} />
-      <input type="hidden" name="userId" value={userId} />
+      {userId && <input type="hidden" name="userId" value={userId} />}
       <RadioGroup name="optionId" value={selectedOption} onValueChange={setSelectedOption}>
         <div className="space-y-3">
           {poll.options?.map((option) => (

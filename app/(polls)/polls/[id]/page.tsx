@@ -9,7 +9,9 @@ import { redirect } from "next/navigation";
 export default async function PollDetailPage({ params }: { params: { id: string } }) {
   const poll = await getPoll(params.id);
   const supabase = getSupabaseAdmin();
-  const { data: { user } } = await supabase.auth.getUser();
+  // Make user optional since users don't need to be logged in to vote
+  const { data } = await supabase.auth.getUser();
+  const user = data.user;
 
   if (!poll) {
     return (
